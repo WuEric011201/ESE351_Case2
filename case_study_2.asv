@@ -57,8 +57,8 @@ for k = 2: num_of_sample
     sum1(k) = sum1(k)+abs(P1(k* (Ts/dt))); 
 end
 figure; 
-indexing =  -5: 1 : 5; % indexing vector
-plot(indexing, sum1); 
+time =  -5: 1 : 5; % time vector
+plot(time, sum1); 
 title('Sum of p1(t)  at integer multiple of Ts');
 xlabel('Integer multiple of Ts '); ylabel('|P1|');
 
@@ -73,7 +73,7 @@ for k = 2: num_of_sample
 end
 
 figure; 
-plot(indexing, sum2); 
+plot(time, sum2); 
 title('Sum of p2(t)  at integer multiple of Ts');
 xlabel('Integer multiple of Ts '); ylabel('|P2|');
 
@@ -81,20 +81,17 @@ xlabel('Integer multiple of Ts '); ylabel('|P2|');
 %  Test Third pulse 
 midpoint = int32(length(p3)/2); 
 interval = Ts/dt; 
-half_length = int32(length(p3(1: midpoint))-1); 
-half_num_sample = idivide(half_length, interval, 'floor'); 
-num_of_sample = 1+2* half_num_sample; 
-first_index = midpoint - interval * half_num_sample; 
-
+half_length = length(p3(1: midpoint))-1; 
+num_of_sample = 1+2* idivide(half_length, interval, 'floor'); \
+first_index = midpoint - 
 sum3 = zeros(1, num_of_sample); % initialize the container
-sum3(1)= abs(P3(first_index));
+sum3(1)= abs(P3(1));
 
-for k = 1: num_of_sample-1
-    sum3(k) = sum3(k+1)+abs(P3(first_index + k* (Ts/dt))); 
+for k = 2: num_of_sample
+    sum3(k) = sum3(k)+abs(P3(k* (Ts/dt))); 
 end
 
-indexing = -half_num_sample : half_num_sample; 
 figure; 
-plot(indexing, sum3); 
+plot(time, sum3); 
 title('Sum of p3(t)  at integer multiple of Ts');
 xlabel('Integer multiple of Ts '); ylabel('|P3|');

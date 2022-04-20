@@ -33,7 +33,7 @@ title('fourier transform of p2(t)');
 xlabel('frequency(Hz)'); ylabel('|P2|');
 
 % 3rd pulse shape: raised cosine filter
-p3 = rcosdesign(0.25, 7 , 14);
+p3 = rcosdesign(0, 10 , Ts/dt);
 t3 = - length(p3)/2 * dt : dt: length(p3)/2 * dt-dt; 
 P3 = fft(p3,L);
 
@@ -47,54 +47,69 @@ xlabel('frequency(Hz)'); ylabel('|P3|');
 
 %% Test  Nyquist filtering Criterion
 
-%  Test first pulse 
-num_of_sample = int32(length(p1)/(Ts/dt))+1;  
-sum1 = zeros(1, num_of_sample); % initialize the container
+%  Two graphs are plotted, one with each value at integer multiple of Ts
+%  and the other is the the sum of values at integer multiple of Ts of the
+%  pulse in the time domain. 
 
-sum1(1)= abs(P1(1));
+interval = Ts/dt; 
+%  Test first pulse 
+num_of_sample = int32(length(p1)/interval )+1;  
+sum1 = zeros(1, num_of_sample); % initialize the container --11
+mid_index = 1+ idivide(int32(num_of_sample), 2, 'floor'); 
+each_P1 = zeros(1, num_of_sample); 
+
+each_P1(1) = abs(p1(1)); 
+sum1(1)= abs(p1(1));
 
 for k = 2: num_of_sample
-    sum1(k) = sum1(k)+abs(P1(k* (Ts/dt))); 
+     if k == mid_index
+         sum1(k) = sum1(k-1); 
+        continue; 
+     end
+     each_P1(k) = abs(p1(1+(k-1)* interval)); 
+    sum1(k) = sum1(k-1)+abs(p1(1+(k-1)* interval)); 
 end
 figure; 
+hold on
 indexing =  -5: 1 : 5; % indexing vector
+plot(indexing, each_P1); 
 plot(indexing, sum1); 
+legend('Value at integer multiple of Ts', 'Sum of the values'); 
 title('Sum of p1(t)  at integer multiple of Ts');
 xlabel('Integer multiple of Ts '); ylabel('|P1|');
 
-
-%  Test Second pulse 
-num_of_sample = int32(length(p2)/(Ts/dt))+1;  
-sum2 = zeros(1, num_of_sample); % initialize the container
-sum2(1)= abs(P2(1));
-
-for k = 2: num_of_sample
-    sum2(k) = sum2(k)+abs(P2(k* (Ts/dt))); 
-end
-
-figure; 
-plot(indexing, sum2); 
-title('Sum of p2(t)  at integer multiple of Ts');
-xlabel('Integer multiple of Ts '); ylabel('|P2|');
-
-
 %  Test Third pulse 
-midpoint = int32(length(p3)/2); 
-interval = Ts/dt; 
+midpoint = idivide(int32(length(p3)), 2, 'ceil'); 
 half_length = int32(length(p3(1: midpoint))-1); 
 half_num_sample = idivide(half_length, interval, 'floor'); 
 num_of_sample = 1+2* half_num_sample; 
 first_index = midpoint - interval * half_num_sample; 
+mid_index =1+ idivide(int32(num_of_sample), 2, 'floor'); 
 
 sum3 = zeros(1, num_of_sample); % initialize the container
-sum3(1)= abs(P3(first_index));
+each_P = zeros(1, num_of_sample); % initialize the container
+sum3(1)= abs(p3(first_index));
+each_P(1) = abs(p3(first_index)); 
 
-for k = 1: num_of_sample-1
-    sum3(k) = sum3(k+1)+abs(P3(first_index + k* (Ts/dt))); 
+for k = 2: num_of_sample
+    if k == mid_index
+        sum3(k) = sum3(k-1); 
+        continue; 
+    end
+    each_P(k) = abs(p3(first_index + (k-1)* interval)); 
+    sum3(k) = sum3(k-1)+abs(p3(first_index + (k-1)* interval)); 
 end
 
 indexing = -half_num_sample : half_num_sample; 
 figure; 
+hold on
+plot(indexing, each_P); 
 plot(indexing, sum3); 
-title('Sum of p3(t)  at integer multiple of Ts');
-xlabel('Integer multiple of Ts '); ylabel('|P3|');
+title('p3(t)  at integer multiple of Ts');
+legend('Value at integer multiple of Ts', 'Sum of the values'); 
+xlabel('Integer multiple of Ts '); ylabel('|p3|');
+
+
+
+%%
+

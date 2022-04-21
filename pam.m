@@ -12,7 +12,7 @@
 % return:
 % xn_est: 1 by 3, decoded xn
 
-function [tImp, r, y, y_total, y_up, y_rec, xn_est] = pam(p, xn,  dt, Tp, Ts, fc, sigma)
+function [tImp, r, y, y_total, y_up, y_rec, xn_est] = pam(p, xn,  dt, Tp, Ts, fc, sigma, count)
 
     % assuming length of xn1, xn2, xn3 are the same
 
@@ -29,7 +29,7 @@ function [tImp, r, y, y_total, y_up, y_rec, xn_est] = pam(p, xn,  dt, Tp, Ts, fc
     impTrain = zeros(3, size(tImp, 2)); % initialization
 
 %     ----------------- UP CONVERT -------------------
-    for num= 1:3
+    for num= 1:count
         impCnt = 1; % pointer: the index of the next pulse
         xnCnt = 1; % pointer: the next message
     
@@ -60,7 +60,7 @@ function [tImp, r, y, y_total, y_up, y_rec, xn_est] = pam(p, xn,  dt, Tp, Ts, fc
 
 
 % ------------- Down convert ----------------
-    for num = 1: 3
+    for num = 1: count
 
         % down convert 
         y_down = r .* cos(2*pi*fc(1, num)*tImp) * 2;

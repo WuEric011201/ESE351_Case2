@@ -9,7 +9,7 @@
 % fc: carrier frequency in hertz
 % 
 
-function [] = error_rate(p, dt, Tp, Ts, xn, fc)
+function [] = error_rate(p, dt, Tp, Ts, xn, fc, count)
     
     % range of sigma
     s = 0:.01:1;
@@ -17,7 +17,7 @@ function [] = error_rate(p, dt, Tp, Ts, xn, fc)
 
     for num = 1: 3
         for i = 1:length(s)
-            [tImp, r, y, y_total, y_up, y_rec, xn_est]= pam(p,xn, dt, Tp, Ts, fc, s(i));
+            [tImp, r, y, y_total, y_up, y_rec, xn_est]= pam(p,xn, dt, Tp, Ts, fc, s(i), count);
             error(i) = sum(xn_est(num, : ) ~= xn(num, : ))/size(xn, 2);
         end
     

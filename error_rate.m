@@ -8,8 +8,6 @@
 % xn: sent message
 % fc: carrier frequency in hertz
 % 
-% WARNING: COMMENT OUT ALL THE PLOT() FUNCTION IN PAM_SIMULATION() OR YOUR
-% COMPUTER WILL EXPLOTE
 
 function [] = error_rate(p, dt, Tp, Ts, xn, fc)
     
@@ -17,13 +15,15 @@ function [] = error_rate(p, dt, Tp, Ts, xn, fc)
     s = 0:.01:1;
     error = zeros(size(s));
 
-    for i = 1:length(s)
-        xn_est = pam_simulation(p, dt, Tp, Ts, xn, fc, s(i));
-        error(i) = sum(xn_est ~= xn)/length(xn);
+    for num = 1: 3
+        for i = 1:length(s)
+            [tImp, r, y, y_total, y_up, y_rec, xn_est]= pam(p,xn, dt, Tp, Ts, fc, s(i));
+            error(i) = sum(xn_est(num, : ) ~= xn(num, : ))/size(xn, 2);
+        end
+    
+        figure;
+        plot(s,error);
+        title(['sigma vs. error rate of ', num2str(num), 'th signal']); xlabel('sigma'); ylabel('error rate');
     end
-
-    figure;
-    plot(s,error);
-    title('sigma vs. error rate'); xlabel('sigma'); ylabel('error rate');
 
 end

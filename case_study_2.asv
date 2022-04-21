@@ -114,7 +114,7 @@ error_rate(p1, dt, 5*Ts, Ts, xn, [20, 30, 40])
 
 %% Testing Other Forms of Messages
 
-message = 'Fuck you! :)';  
+message = 'Fuck you ! :)';  
 binary = str2num(reshape(dec2bin(message)',1,[])'); 
 N = length(binary);
 xn = zeros(3, N);
@@ -122,10 +122,10 @@ xn(1, : ) = binary;
 
 [tImp, r, y, y_total, y_up, y_rec, xn_est]= pam(p1, xn, dt, 5*Ts, Ts, [20, 30, 40], 0.1); 
 graphing(tImp, fs, y, y_up, y_total, r, y_rec, xn, xn_est, 3); 
-error_rate(p1, dt, 5*Ts, Ts, xn, [20, 30, 40])
+% error_rate(p1, dt, 5*Ts, Ts, xn, [20, 30, 40])
 
 xn_est(xn_est >0) = 1; 
 xn_est(xn_est <0) = 0; 
 
 messageOut = char(bin2dec(num2str(reshape(xn_est(1, : ),7,[])')))'; 
-disp(messageOut);
+print(messageOut);

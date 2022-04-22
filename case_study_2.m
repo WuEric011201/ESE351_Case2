@@ -1,15 +1,20 @@
 %% Case Study 2: PAM Communication
 
+% fixed variables
 Ts = .1; % symbol time
 dt = Ts/50; % sample period
-t = -5*Ts : dt : 5*Ts; % time vector
-L = 1024; % length of the signal in frequency domain
+L = 1000; % length of the signal in frequency domain
 interval = Ts/dt; 
 
 fs = 1/dt; % length in frequency domain 
 f = -fs/2 : fs/L : fs/2-fs/L; % frequency range 
 
+xn1 = 2*((rand(1,11)>0.5)-0.5); % a 1 by 11 message for pulse analysis
+xn2 = 2*((rand(1,10001)>0.5)-0.5); % a 1 by 10001 message for error analysis
+
 % 1st pulse shape: truncated sinc
+Tp1 = 5*Ts;
+tp1 = -Tp1 : dt : Tp1; % time vector;
 p1 = sinc(t/Ts) .* double(abs(t) <= 3*Ts); % this truncating time can be varied
 P1 = fft(p1,L);
 
@@ -21,18 +26,41 @@ subplot(2,1,2), plot(f,fftshift(abs(P1/L)));
 title('Fourier transform of p1(t)');
 xlabel('frequency(Hz)'); ylabel('|P1|');
 
-% 2rd pulse shape: raised cosine filter
-p2 = rcosdesign(0, 10 , Ts/dt);
-t3 = - length(p2)/2 * dt : dt: length(p2)/2 * dt-dt; 
-P3 = fft(p2,L);
+pulse_analysis(p1, dt, Tp1, Ts, xn1, 20, 0.5);
+error_rate(p1, dt, Tp1, Ts, xn2, 20, 1);
+
+% % 2nd pulse shape: raised cosine filter
+% tp2 = - length(p2)/2 * dt : dt: length(p2)/2 * dt-dt; 
+% p2 = rcosdesign(0, 10 , Ts/dt);
+% P2 = fft(p2,L);
+% 
+% figure;
+% subplot(2,1,1), plot(tp2,p2);
+% title('p2(t): raised cosine filter');
+% xlabel('time(s)'); ylabel('p2(t)');
+% subplot(2,1,2), plot(f,fftshift(abs(P2/L)));
+% title('Fourier transform of p2(t)');
+% xlabel('frequency(Hz)'); ylabel('|P2|');
+% 
+% pulse_analysis(p2, dt, Tp1, Ts, xn, 20, sigma)
+
+% 2nd pulse shape: longer triangular pulse with 0 at symbol periods
+Tp2 = 2*Ts;
+tp2 = -2*Ts : dt : 2*Ts;
+p2 = 1-abs(tp2)./(2*Ts);
+p2 = p2 - p2 .* double(abs(abs(tp2)-Ts) <= 1E-5);
+P2 = fft(p2,L);
 
 figure;
-subplot(2,1,1), plot(t3,p2);
-title('p2(t): raised cosine filter');
+subplot(2,1,1), plot(tp2,p2);
+title('p3(t): longer triangular pulse with 0 at symbol periods');
 xlabel('time(s)'); ylabel('p2(t)');
-subplot(2,1,2), plot(f,fftshift(abs(P3/L)));
+subplot(2,1,2), plot(f,fftshift(abs(P2/L)));
 title('Fourier transform of p2(t)');
 xlabel('frequency(Hz)'); ylabel('|P2|');
+
+pulse_analysis(p2, dt, Tp2, Ts, xn1, 20, 0.5);
+error_rate(p2, dt, Tp2, Ts, xn2, 20, 1);
 
 %% Test  Nyquist filtering Criterion
 
@@ -97,37 +125,43 @@ title('p2(t)  at integer multiple of Ts');
 legend('Value at integer multiple of Ts', 'Sum of the values'); 
 xlabel('Integer multiple of Ts '); ylabel('|p2|');
 
-
 %% Building and testing the PAM system using three signal inputs
 
 N = 101; % choose a large N for accuracy
-xn = zeros(3, N); 
+xn1 = zeros(3, N); 
 
 for i = 1: 3 % Populate xn
-    xn(i, : ) = 2*((rand(1,N)>0.5)-0.5); % binary message
+    xn1(i, : ) = 2*((rand(1,N)>0.5)-0.5); % binary message
 end
 
 % Using functions to go through the PAM process and test the error
-[tImp, r, y, y_total, y_up, y_rec, xn_est]= pam(p1, xn, dt, 5*Ts, Ts, [20, 30, 40], 0.1, 3); 
-graphing(tImp, fs, y, y_up, y_total, r, y_rec, xn, xn_est, 3); 
-error_rate(p1, dt, 5*Ts, Ts, xn, [20, 30, 40], 3)
+[tImp, r, y, y_total, y_up, y_rec, xn_est]= pam(p2, xn1, dt, 2*Ts, Ts, [20, 30, 40], 0.1, 3); 
+graphing(tImp, fs, y, y_up, y_total, r, y_rec, xn1, xn_est, 3); 
+error_rate(p2, dt, 2*Ts, Ts, xn1, [20, 30, 40], 3)
 
 %% Testing Other Forms of Messages
 
-message = 'I love ESE 232';  
+% generate the text message and preprocess
+message = 'case study 2 finished';  
 binary = str2num(reshape(dec2bin(message)',1,[])'); 
+binary = -1 * double(binary == 0) + binary;
 
+% copy the same message 3 times
 N = length(binary);
-xn = zeros(3, N);
-xn(1, : ) = binary'; 
+xn1 = zeros(3, N);
+for i = 1:3
+    xn1(i, : ) = binary'; 
+end
 
-[tImp, r, y, y_total, y_up, y_rec, xn_est]= pam(p1, xn, dt, 5*Ts, Ts, [20, 30, 40], 0.1, 1); 
-% graphing(tImp, fs, y, y_up, y_total, r, y_rec, xn, xn_est, 3); 
-% error_rate(p1, dt, 5*Ts, Ts, xn, [20, 30, 40], 1)
+% with sigma = 1
+[~, ~, ~, ~, ~, ~, xn_est]= pam(p1, xn1, dt, 5*Ts, Ts, [20, 30, 40], 1, 3); 
 
-answer = xn_est(1, : )'; 
-answer(answer <0) = 0; 
-
-a = num2str(reshape(answer,7,[]))'; 
-messageOut = char(bin2dec(a))'; 
-disp(messageOut);
+% process the output and display
+for i = 1:3
+    answer = xn_est(i, : )'; 
+    answer(answer <0) = 0; 
+    
+    a = num2str(reshape(answer,7,[]))'; 
+    messageOut = char(bin2dec(a))'; 
+    disp(messageOut);
+end

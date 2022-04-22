@@ -1,16 +1,16 @@
 % function pam_simulation
 % parameters:
 % p: pulse shape
-% N: length of the signal
+% xn: count row input signal 
 % dt: time spacing between pulse shape sampling
 % Tp: time range of pulse shape (time vector = -Tp : dt : Tp)
 % Ts: symbol time
-% fc: 1 by 3, carrier frequency in hertz
+% fc: 1 by count, carrier frequency in hertz
 % sigma: related to noise
-% xn: three row input signal 
+% count: number of signals
 % 
 % return:
-% xn_est: 1 by 3, decoded xn
+% xn_est: 1 by count, decoded xn
 
 function [tImp, r, y, y_total, y_up, y_rec, xn_est] = pam(p, xn,  dt, Tp, Ts, fc, sigma, count)
 
@@ -20,16 +20,17 @@ function [tImp, r, y, y_total, y_up, y_rec, xn_est] = pam(p, xn,  dt, Tp, Ts, fc
     fs = 1/dt; % sampling frequency
     N = size(xn, 2);  % Length of xn
     tImp = 0 : dt : Ts*(N-1); % time vector of the impulse train
-    y_up = zeros(3, length(tImp)); 
-    y = zeros(3, length(tImp)); 
-    xn_est= zeros(3, N); 
-    y_rec = zeros(3, length(tImp)); 
-    
-    % generate the impulse train
-    impTrain = zeros(3, size(tImp, 2)); % initialization
 
-%     ----------------- UP CONVERT -------------------
-    for num= 1:count
+% ----------------- UP CONVERT -------------------
+
+    % generate the impulse train
+    impTrain = zeros(count, size(tImp, 2)); % initialization
+
+    % initialization
+    y = zeros(count, length(tImp)); % noise free
+    y_up = zeros(count, length(tImp)); % up converted
+
+    for num = 1:count
         impCnt = 1; % pointer: the index of the next pulse
         xnCnt = 1; % pointer: the next message
     
@@ -42,8 +43,8 @@ function [tImp, r, y, y_total, y_up, y_rec, xn_est] = pam(p, xn,  dt, Tp, Ts, fc
         end
 
         % convolve pulse shape with the impulse train
-        result_conv = conv(impTrain(num, : ), p);
-        y(num, : ) = result_conv(Tp/dt+1 : length(result_conv)-Tp/dt); % Make the y same length as the impulse train
+        result_conv = conv(impTrain(num, :), p);
+        y(num, :) = result_conv(Tp/dt+1 : length(result_conv)-Tp/dt); % Make the y same length as the impulse train
 
         % up convert
         y_up(num, :) = y(num, : ) .* cos(2*pi*fc(1, num)*tImp);
@@ -54,12 +55,15 @@ function [tImp, r, y, y_total, y_up, y_rec, xn_est] = pam(p, xn,  dt, Tp, Ts, fc
 
 % -------- Transmit the signal -------------------------
 
-
     % add noise
-    r = y_total + sigma .*randn(1,length(tImp));
+    r = y_total + sigma .* randn(1,length(tImp));
 
+% ------------- Down convert & decode ----------------
 
-% ------------- Down convert ----------------
+    % initialize the y_rec and decoded message 
+    y_rec = zeros(3, length(tImp)); 
+    xn_est= zeros(3, N);
+    
     for num = 1: count
 
         % down convert 
@@ -67,7 +71,7 @@ function [tImp, r, y, y_total, y_up, y_rec, xn_est] = pam(p, xn,  dt, Tp, Ts, fc
         y_rec(num, : ) = lowpass(y_down, 5, fs); % Passing through a low pass filter of frequency 5Hz
     
         % matched filter receiver
-        z = conv(y_rec(num, : ),flip(p));
+        z = conv(y_rec(num, :),flip(p));
         z = z(Tp/dt+1 : length(z)-Tp/dt);
         
         % calculate xn_est

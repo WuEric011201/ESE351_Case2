@@ -15,15 +15,16 @@ function [] = error_rate(p, dt, Tp, Ts, xn, fc, count)
     s = 0:.01:1;
     error = zeros(size(s));
 
-    for num = 1: 3
+    for num = 1: count
         for i = 1:length(s)
-            [tImp, r, y, y_total, y_up, y_rec, xn_est]= pam(p,xn, dt, Tp, Ts, fc, s(i), count);
+            [~, ~, ~, ~, ~, ~, xn_est]= pam(p,xn, dt, Tp, Ts, fc, s(i), count);
             error(i) = sum(xn_est(num, : ) ~= xn(num, : ))/size(xn, 2);
         end
     
         figure;
         plot(s,error);
-        title(['sigma vs. error rate of ', num2str(num), 'th signal']); xlabel('sigma'); ylabel('error rate');
+%         title(['sigma vs. error rate of ', num2str(num), 'th signal']); xlabel('sigma'); ylabel('error rate');
+        title('sigma vs. error rate');
     end
 
 end

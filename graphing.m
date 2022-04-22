@@ -42,7 +42,7 @@ function []  = graphing(tImp, fs, y, y_up, y_total, r, y_rec, xn, xn_est, num)
         subplot(2,1,2); plot(xn_est(num, : )); title('decoded message');
     end
     
-%     Graph the total signal in the transmission
+    % Graph the total signal in the transmission
     figure; 
     subplot(2, 1, 1); 
     plot(tImp,y_total);

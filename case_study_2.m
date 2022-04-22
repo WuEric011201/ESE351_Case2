@@ -3,6 +3,7 @@
 % fixed variables
 Ts = .1; % symbol time
 dt = Ts/50; % sample period
+t = -5*Ts : dt : 5*Ts; % time vector
 L = 1000; % length of the signal in frequency domain
 interval = Ts/dt; 
 

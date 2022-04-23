@@ -155,7 +155,7 @@ end
 graphing(tImp, fs, y, y_up, y_total, r, y_rec, xn1, xn_est, 3); 
 error_rate(p2, dt, 2*Ts, Ts, xn1, [20, 30, 40], 3)
 
-%% Testing Other Forms of Messages
+%% Testing Text
 
 % generate the text message and preprocess
 message = 'case study 2 finished';  
@@ -181,3 +181,40 @@ for i = 1:3
     messageOut = char(bin2dec(a))'; 
     disp(messageOut);
 end
+
+%% Testing Audio
+
+% generate the Audio message and preprocess
+
+fid = fopen('blue.wav', 'r');
+file_bits = fread(fid, [1 inf], 'uint8');
+fclose(fid);
+bit = uint8(rem(floor((1 ./ [128, 64, 32, 16, 8, 4, 2, 1].') * file_bits), 2));
+bit = bit(:);
+
+binary = str2num(reshape(dec2bin(bit)',1,[])'); 
+binary = -1 * double(binary == 0) + binary;
+
+% copy the same message 3 times
+N = length(binary);
+xn1 = zeros(1, N);
+xn1(1, : ) = binary'; 
+
+
+% with sigma = 1
+[~, ~, ~, ~, ~, ~, xn_est]= pam(p1, xn1, dt, 5*Ts, Ts, [20, 30, 40], 1, 1); 
+
+% process the output and display
+    answer = xn_est(1, : )'; 
+    answer(answer <0) = 0; 
+
+wavdata = audioread('blue.wav');
+orig_size = size(wavdata);
+
+data_class_to_use = 'int8';   %or as appropriate
+SampleRate = 22100;      %set as appropriate
+
+wavdata = reshape( typecast( uint8(bin2dec( char(answer + '0') )), data_class_to_use ), orig_size);
+audiowrite('OutputDonna.wav', wavdata, SampleRate)
+
+sound('OutputDonna.wav');

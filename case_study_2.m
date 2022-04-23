@@ -126,7 +126,22 @@ title('p2(t)  at integer multiple of Ts');
 legend('Value at integer multiple of Ts', 'Sum of the values'); 
 xlabel('Integer multiple of Ts '); ylabel('|p2|');
 
-%% Building and testing the PAM system using three signal inputs
+%% Building and testing the PAM system using three signal inputs - sinc pulse
+
+N = 101; % choose a large N for accuracy
+xn1 = zeros(3, N); 
+
+for i = 1: 3 % Populate xn
+    xn1(i, : ) = 2*((rand(1,N)>0.5)-0.5); % binary message
+end
+
+% Using triangle to go through the PAM process and test the error
+[tImp, r, y, y_total, y_up, y_rec, xn_est]= pam(p1, xn1, dt, 5*Ts, Ts, [20, 30, 40], 1, 3); 
+graphing(tImp, fs, y, y_up, y_total, r, y_rec, xn1, xn_est, 3); 
+error_rate(p1, dt, 5*Ts, Ts, xn1, [20, 30, 40], 3)
+
+
+%% Building and testing the PAM system using three signal inputs - triangle pulse
 
 N = 101; % choose a large N for accuracy
 xn1 = zeros(3, N); 
